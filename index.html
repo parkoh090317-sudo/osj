@@ -1,0 +1,1476 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>통합 학생 관리 프로그램</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --navy: #1B2A4A;
+    --navy-light: #2C3E6B;
+    --coral: #E8734A;
+    --coral-hover: #D4612F;
+    --surface: #F2F4F8;
+    --card: #FFFFFF;
+    --text-primary: #1A1D26;
+    --text-secondary: #5A6178;
+    --text-muted: #9098B1;
+    --border: #E2E6EF;
+    --success: #2ECC71;
+    --success-bg: #EAFAF1;
+    --warning: #F5A623;
+    --warning-bg: #FEF5E7;
+    --danger: #E74C3C;
+    --danger-bg: #FDEDEC;
+    --info: #3498DB;
+    --info-bg: #EBF5FB;
+    --shadow-sm: 0 1px 3px rgba(27,42,74,0.06);
+    --shadow-md: 0 4px 12px rgba(27,42,74,0.08);
+    --shadow-lg: 0 8px 30px rgba(27,42,74,0.12);
+    --radius: 12px;
+    --radius-sm: 8px;
+    --transition: 0.2s ease;
+  }
+
+  body {
+    font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--surface);
+    color: var(--text-primary);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  /* ── HEADER ── */
+  .app-header {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+    color: #fff;
+    padding: 0 32px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(27,42,74,0.2);
+  }
+  .app-header .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: -0.3px;
+  }
+  .app-header .logo-icon {
+    width: 36px; height: 36px;
+    background: var(--coral);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .header-info {
+    font-size: 13px;
+    opacity: 0.7;
+    font-weight: 300;
+  }
+
+  /* ── NAV TABS ── */
+  .nav-tabs {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    padding: 0 32px;
+    gap: 0;
+    position: sticky;
+    top: 64px;
+    z-index: 99;
+  }
+  .nav-tab {
+    padding: 16px 28px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    border: none;
+    background: none;
+    cursor: pointer;
+    position: relative;
+    transition: color var(--transition);
+    white-space: nowrap;
+  }
+  .nav-tab:hover { color: var(--text-primary); }
+  .nav-tab.active {
+    color: var(--coral);
+    font-weight: 600;
+  }
+  .nav-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--coral);
+    border-radius: 3px 3px 0 0;
+  }
+  .nav-tab .tab-icon { margin-right: 8px; }
+
+  /* ── MAIN CONTENT ── */
+  .main-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 28px 32px;
+  }
+  .page { display: none; }
+  .page.active { display: block; animation: fadeUp 0.3s ease; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── PAGE HEADER ── */
+  .page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+  }
+  .page-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.5px;
+  }
+  .page-subtitle {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    font-weight: 400;
+  }
+
+  /* ── STAT CARDS ── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  .stat-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .stat-icon {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+  .stat-icon.blue   { background: var(--info-bg); }
+  .stat-icon.green  { background: var(--success-bg); }
+  .stat-icon.orange { background: var(--warning-bg); }
+  .stat-icon.red    { background: var(--danger-bg); }
+  .stat-value {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.2;
+  }
+  .stat-label {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .card-header {
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .card-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .card-body { padding: 24px; }
+  .card + .card { margin-top: 20px; }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 20px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    border: none;
+    cursor: pointer;
+    transition: all var(--transition);
+  }
+  .btn-primary {
+    background: var(--coral);
+    color: #fff;
+  }
+  .btn-primary:hover { background: var(--coral-hover); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+  .btn-secondary {
+    background: var(--surface);
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { background: #E8EBF2; }
+  .btn-danger {
+    background: var(--danger-bg);
+    color: var(--danger);
+  }
+  .btn-danger:hover { background: #FADBD8; }
+  .btn-success {
+    background: var(--success-bg);
+    color: #27AE60;
+  }
+  .btn-success:hover { background: #D5F5E3; }
+  .btn-sm { padding: 6px 14px; font-size: 12px; }
+  .btn-icon {
+    width: 34px; height: 34px;
+    padding: 0;
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 14px;
+    transition: all var(--transition);
+  }
+  .btn-icon:hover { background: #E8EBF2; color: var(--text-primary); }
+  .btn-icon.danger:hover { background: var(--danger-bg); color: var(--danger); }
+
+  /* ── FORM ── */
+  .form-group { margin-bottom: 18px; }
+  .form-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+  }
+  .form-input, .form-select {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--text-primary);
+    background: var(--card);
+    transition: border-color var(--transition), box-shadow var(--transition);
+    outline: none;
+  }
+  .form-input:focus, .form-select:focus {
+    border-color: var(--coral);
+    box-shadow: 0 0 0 3px rgba(232,115,74,0.12);
+  }
+  .form-input::placeholder { color: var(--text-muted); }
+  .form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+  }
+
+  /* ── TABLE ── */
+  .table-wrapper { overflow-x: auto; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  thead th {
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-secondary);
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  tbody td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: rgba(242,244,248,0.5); }
+
+  /* ── BADGES ── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .badge-success { background: var(--success-bg); color: #27AE60; }
+  .badge-warning { background: var(--warning-bg); color: #D4890A; }
+  .badge-danger  { background: var(--danger-bg); color: var(--danger); }
+  .badge-info    { background: var(--info-bg); color: #2980B9; }
+
+  /* ── ATTENDANCE RADIO ── */
+  .att-group {
+    display: flex;
+    gap: 6px;
+  }
+  .att-radio {
+    display: none;
+  }
+  .att-label {
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1.5px solid var(--border);
+    color: var(--text-secondary);
+    transition: all var(--transition);
+    user-select: none;
+  }
+  .att-label:hover { border-color: #bbb; }
+  .att-radio:checked + .att-label.lbl-present  { background: var(--success-bg); color: #27AE60; border-color: var(--success); }
+  .att-radio:checked + .att-label.lbl-absent   { background: var(--danger-bg); color: var(--danger); border-color: var(--danger); }
+  .att-radio:checked + .att-label.lbl-late     { background: var(--warning-bg); color: #D4890A; border-color: var(--warning); }
+
+  /* ── SEARCH / FILTER ── */
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .search-box {
+    position: relative;
+    flex: 1;
+    min-width: 200px;
+  }
+  .search-box .form-input { padding-left: 38px; }
+  .search-box .search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 14px;
+    pointer-events: none;
+  }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(26,29,38,0.45);
+    backdrop-filter: blur(4px);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.active { display: flex; animation: fadeIn 0.2s ease; }
+  .modal {
+    background: var(--card);
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+    width: 480px;
+    max-width: 92vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: scaleUp 0.25s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes scaleUp { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+
+  .modal-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .modal-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+  .modal-close {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    border: none;
+    background: var(--surface);
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 18px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all var(--transition);
+  }
+  .modal-close:hover { background: var(--danger-bg); color: var(--danger); }
+  .modal-body { padding: 24px; }
+  .modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+
+  /* ── TOAST ── */
+  .toast-container {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    z-index: 300;
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 10px;
+  }
+  .toast {
+    padding: 14px 20px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 500;
+    color: #fff;
+    box-shadow: var(--shadow-lg);
+    animation: slideInRight 0.3s ease, fadeOut 0.3s ease 2.5s forwards;
+    max-width: 360px;
+  }
+  .toast.success { background: #27AE60; }
+  .toast.error   { background: var(--danger); }
+  .toast.info    { background: var(--info); }
+  @keyframes slideInRight { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
+  @keyframes fadeOut { to { opacity: 0; transform: translateY(10px); } }
+
+  /* ── EMPTY STATE ── */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+  }
+  .empty-state .empty-icon { font-size: 48px; margin-bottom: 16px; }
+  .empty-state .empty-title { font-size: 16px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; }
+  .empty-state .empty-desc  { font-size: 13px; }
+
+  /* ── SCORE BAR ── */
+  .score-bar-wrap {
+    width: 100%;
+    max-width: 120px;
+    height: 8px;
+    background: var(--surface);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .score-bar {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.4s ease;
+  }
+  .score-bar.high   { background: var(--success); }
+  .score-bar.mid    { background: var(--warning); }
+  .score-bar.low    { background: var(--danger); }
+
+  /* ── STUDENT NAME AVATAR ── */
+  .student-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .avatar {
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .student-name { font-weight: 600; font-size: 13px; }
+  .student-meta { font-size: 11px; color: var(--text-muted); }
+
+  /* ── DATE PICKER ROW ── */
+  .date-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .date-row .form-input { max-width: 200px; }
+
+  /* ── CONFIRM DIALOG ── */
+  .confirm-text {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    text-align: center;
+    padding: 12px 0;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    .app-header { padding: 0 16px; }
+    .nav-tabs { padding: 0 12px; overflow-x: auto; }
+    .nav-tab { padding: 14px 18px; font-size: 13px; }
+    .main-content { padding: 20px 16px; }
+    .stats-row { grid-template-columns: 1fr 1fr; }
+    .form-row { grid-template-columns: 1fr; }
+    .toolbar { flex-direction: column; align-items: stretch; }
+    .page-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+  }
+  @media (max-width: 480px) {
+    .stats-row { grid-template-columns: 1fr; }
+    .nav-tab .tab-text { display: none; }
+    .nav-tab .tab-icon { margin-right: 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════ HEADER ═══════ -->
+<header class="app-header">
+  <div class="logo">
+    <div class="logo-icon">📚</div>
+    <span>학생 관리 시스템</span>
+  </div>
+  <div class="header-info" id="headerDate"></div>
+</header>
+
+<!-- ═══════ NAV ═══════ -->
+<nav class="nav-tabs">
+  <button class="nav-tab active" data-page="students">
+    <span class="tab-icon">👩‍🎓</span><span class="tab-text">학생 관리</span>
+  </button>
+  <button class="nav-tab" data-page="attendance">
+    <span class="tab-icon">✅</span><span class="tab-text">출결 관리</span>
+  </button>
+  <button class="nav-tab" data-page="tests">
+    <span class="tab-icon">📝</span><span class="tab-text">테스트 결과</span>
+  </button>
+  <button class="nav-tab" data-page="dashboard">
+    <span class="tab-icon">📊</span><span class="tab-text">대시보드</span>
+  </button>
+</nav>
+
+<!-- ═══════ PAGES ═══════ -->
+<main class="main-content">
+
+  <!-- ────── 학생 관리 PAGE ────── -->
+  <section class="page active" id="page-students">
+    <div class="page-header">
+      <div>
+        <div class="page-title">학생 명단 관리</div>
+        <div class="page-subtitle">학생 정보를 등록하고 관리합니다</div>
+      </div>
+      <button class="btn btn-primary" onclick="openStudentModal()">
+        ＋ 학생 등록
+      </button>
+    </div>
+
+    <div class="stats-row" id="studentStats"></div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">전체 학생 목록</div>
+        <div class="toolbar">
+          <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input class="form-input" type="text" id="studentSearch" placeholder="이름, 학교로 검색..." oninput="renderStudents()">
+          </div>
+          <select class="form-select" id="gradeFilter" style="width:120px" onchange="renderStudents()">
+            <option value="">전체 학년</option>
+            <option value="초1">초1</option><option value="초2">초2</option><option value="초3">초3</option>
+            <option value="초4">초4</option><option value="초5">초5</option><option value="초6">초6</option>
+            <option value="중1">중1</option><option value="중2">중2</option><option value="중3">중3</option>
+            <option value="고1">고1</option><option value="고2">고2</option><option value="고3">고3</option>
+          </select>
+        </div>
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>학생</th>
+              <th>학년</th>
+              <th>학교</th>
+              <th>등록일</th>
+              <th style="text-align:center">관리</th>
+            </tr>
+          </thead>
+          <tbody id="studentTableBody"></tbody>
+        </table>
+      </div>
+      <div id="studentEmpty" class="empty-state" style="display:none">
+        <div class="empty-icon">🎒</div>
+        <div class="empty-title">등록된 학생이 없습니다</div>
+        <div class="empty-desc">위의 '학생 등록' 버튼을 눌러 학생을 추가하세요</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ────── 출결 관리 PAGE ────── -->
+  <section class="page" id="page-attendance">
+    <div class="page-header">
+      <div>
+        <div class="page-title">출결 현황 관리</div>
+        <div class="page-subtitle">날짜별로 학생의 출결을 체크합니다</div>
+      </div>
+      <button class="btn btn-success" onclick="saveAttendance()">💾 출결 저장</button>
+    </div>
+
+    <div class="stats-row" id="attStats"></div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="date-row" style="margin-bottom:0">
+          <label class="form-label" style="margin-bottom:0;white-space:nowrap">날짜 선택</label>
+          <input class="form-input" type="date" id="attDate" onchange="renderAttendance()">
+        </div>
+        <div class="toolbar">
+          <div class="search-box" style="min-width:160px">
+            <span class="search-icon">🔍</span>
+            <input class="form-input" type="text" id="attSearch" placeholder="이름 검색..." oninput="renderAttendance()">
+          </div>
+        </div>
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>학생</th>
+              <th>학년</th>
+              <th style="text-align:center">출결 상태</th>
+            </tr>
+          </thead>
+          <tbody id="attTableBody"></tbody>
+        </table>
+      </div>
+      <div id="attEmpty" class="empty-state" style="display:none">
+        <div class="empty-icon">📋</div>
+        <div class="empty-title">학생을 먼저 등록하세요</div>
+        <div class="empty-desc">'학생 관리' 탭에서 학생을 추가한 후 출결 체크를 할 수 있습니다</div>
+      </div>
+    </div>
+
+    <!-- 출결 이력 -->
+    <div class="card" style="margin-top:20px">
+      <div class="card-header">
+        <div class="card-title">출결 이력 조회</div>
+        <div class="toolbar">
+          <select class="form-select" id="attHistoryStudent" style="width:160px" onchange="renderAttHistory()">
+            <option value="">학생 선택</option>
+          </select>
+        </div>
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>날짜</th>
+              <th>출결 상태</th>
+            </tr>
+          </thead>
+          <tbody id="attHistoryBody"></tbody>
+        </table>
+      </div>
+      <div id="attHistoryEmpty" class="empty-state" style="display:none">
+        <div class="empty-icon">📅</div>
+        <div class="empty-title">학생을 선택하세요</div>
+        <div class="empty-desc">학생을 선택하면 출결 이력이 표시됩니다</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ────── 테스트 결과 PAGE ────── -->
+  <section class="page" id="page-tests">
+    <div class="page-header">
+      <div>
+        <div class="page-title">테스트 결과 관리</div>
+        <div class="page-subtitle">학생별 시험 점수를 기록하고 관리합니다</div>
+      </div>
+      <button class="btn btn-primary" onclick="openTestModal()">＋ 점수 입력</button>
+    </div>
+
+    <div class="stats-row" id="testStats"></div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">시험 결과 목록</div>
+        <div class="toolbar">
+          <div class="search-box" style="min-width:160px">
+            <span class="search-icon">🔍</span>
+            <input class="form-input" type="text" id="testSearch" placeholder="이름, 시험명 검색..." oninput="renderTests()">
+          </div>
+          <select class="form-select" id="testStudentFilter" style="width:140px" onchange="renderTests()">
+            <option value="">전체 학생</option>
+          </select>
+        </div>
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>학생</th>
+              <th>시험명</th>
+              <th>과목</th>
+              <th>점수</th>
+              <th>성취도</th>
+              <th>시험일</th>
+              <th style="text-align:center">관리</th>
+            </tr>
+          </thead>
+          <tbody id="testTableBody"></tbody>
+        </table>
+      </div>
+      <div id="testEmpty" class="empty-state" style="display:none">
+        <div class="empty-icon">📝</div>
+        <div class="empty-title">등록된 시험 결과가 없습니다</div>
+        <div class="empty-desc">'점수 입력' 버튼을 눌러 시험 결과를 추가하세요</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ────── 대시보드 PAGE ────── -->
+  <section class="page" id="page-dashboard">
+    <div class="page-header">
+      <div>
+        <div class="page-title">종합 대시보드</div>
+        <div class="page-subtitle">학생 현황을 한눈에 확인합니다</div>
+      </div>
+    </div>
+
+    <div class="stats-row" id="dashStats"></div>
+
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+      <div class="card">
+        <div class="card-header"><div class="card-title">학년별 학생 분포</div></div>
+        <div class="card-body" id="gradeChart"></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">최근 시험 성적 TOP 5</div></div>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>학생</th><th>시험명</th><th>점수</th></tr></thead>
+            <tbody id="topScoresBody"></tbody>
+          </table>
+        </div>
+        <div id="topScoresEmpty" class="empty-state" style="display:none; padding:30px">
+          <div class="empty-icon">🏆</div>
+          <div class="empty-title">성적 데이터 없음</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:20px">
+      <div class="card-header"><div class="card-title">오늘의 출결 현황</div></div>
+      <div class="card-body" id="todayAttSummary"></div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ═══════ MODALS ═══════ -->
+
+<!-- 학생 등록/수정 모달 -->
+<div class="modal-overlay" id="studentModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="studentModalTitle">학생 등록</div>
+      <button class="modal-close" onclick="closeStudentModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editStudentId">
+      <div class="form-group">
+        <label class="form-label">이름 <span style="color:var(--danger)">*</span></label>
+        <input class="form-input" type="text" id="sName" placeholder="학생 이름을 입력하세요">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">학년 <span style="color:var(--danger)">*</span></label>
+          <select class="form-select" id="sGrade">
+            <option value="">학년 선택</option>
+            <option value="초1">초1</option><option value="초2">초2</option><option value="초3">초3</option>
+            <option value="초4">초4</option><option value="초5">초5</option><option value="초6">초6</option>
+            <option value="중1">중1</option><option value="중2">중2</option><option value="중3">중3</option>
+            <option value="고1">고1</option><option value="고2">고2</option><option value="고3">고3</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">학교 <span style="color:var(--danger)">*</span></label>
+          <input class="form-input" type="text" id="sSchool" placeholder="학교명">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeStudentModal()">취소</button>
+      <button class="btn btn-primary" onclick="saveStudent()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 시험 점수 입력 모달 -->
+<div class="modal-overlay" id="testModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="testModalTitle">시험 점수 입력</div>
+      <button class="modal-close" onclick="closeTestModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editTestId">
+      <div class="form-group">
+        <label class="form-label">학생 선택 <span style="color:var(--danger)">*</span></label>
+        <select class="form-select" id="tStudent">
+          <option value="">학생을 선택하세요</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">시험명 <span style="color:var(--danger)">*</span></label>
+        <input class="form-input" type="text" id="tExam" placeholder="예: 1학기 중간고사">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">과목 <span style="color:var(--danger)">*</span></label>
+          <select class="form-select" id="tSubject">
+            <option value="">과목 선택</option>
+            <option value="국어">국어</option>
+            <option value="영어">영어</option>
+            <option value="수학">수학</option>
+            <option value="과학">과학</option>
+            <option value="사회">사회</option>
+            <option value="기타">기타</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">점수 (0~100) <span style="color:var(--danger)">*</span></label>
+          <input class="form-input" type="number" id="tScore" min="0" max="100" placeholder="점수 입력">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">시험일</label>
+        <input class="form-input" type="date" id="tDate">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeTestModal()">취소</button>
+      <button class="btn btn-primary" onclick="saveTest()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 삭제 확인 모달 -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal" style="width:400px">
+    <div class="modal-header">
+      <div class="modal-title">삭제 확인</div>
+      <button class="modal-close" onclick="closeConfirm()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="confirm-text" id="confirmText"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeConfirm()">취소</button>
+      <button class="btn btn-danger" id="confirmBtn" onclick="">삭제</button>
+    </div>
+  </div>
+</div>
+
+<!-- 토스트 컨테이너 -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+/* ══════════════════════════════════════
+   DATA LAYER — localStorage persistence
+   ══════════════════════════════════════ */
+const KEYS = { students: 'acad_students', attendance: 'acad_attendance', tests: 'acad_tests' };
+
+function load(key) {
+  try { return JSON.parse(localStorage.getItem(key)) || []; }
+  catch { return []; }
+}
+function save(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
+
+function getStudents()  { return load(KEYS.students); }
+function getAttendance(){ return load(KEYS.attendance); }
+function getTests()     { return load(KEYS.tests); }
+function saveStudents(d)  { save(KEYS.students, d); }
+function saveAttendanceData(d) { save(KEYS.attendance, d); }
+function saveTests(d)     { save(KEYS.tests, d); }
+
+function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+
+/* avatar colors */
+const COLORS = ['#E8734A','#3498DB','#2ECC71','#9B59B6','#E74C3C','#1ABC9C','#F39C12','#2C3E6B','#E91E63','#00BCD4'];
+function avatarColor(name) {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = name.charCodeAt(i) + ((h << 5) - h);
+  return COLORS[Math.abs(h) % COLORS.length];
+}
+
+/* ══════════════════════════════════════
+   NAVIGATION
+   ══════════════════════════════════════ */
+document.querySelectorAll('.nav-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('page-' + tab.dataset.page).classList.add('active');
+    refreshPage(tab.dataset.page);
+  });
+});
+
+function refreshPage(page) {
+  if (page === 'students')   renderStudents();
+  if (page === 'attendance') { initAttDate(); renderAttendance(); populateAttHistoryDropdown(); }
+  if (page === 'tests')      { populateTestDropdowns(); renderTests(); }
+  if (page === 'dashboard')  renderDashboard();
+}
+
+/* ══════════════════════════════════════
+   TOAST
+   ══════════════════════════════════════ */
+function toast(msg, type='success') {
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = msg;
+  document.getElementById('toastContainer').appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
+
+/* ══════════════════════════════════════
+   FORMAT HELPERS
+   ══════════════════════════════════════ */
+function today() { return new Date().toISOString().split('T')[0]; }
+function formatDate(d) {
+  if (!d) return '-';
+  const dt = new Date(d);
+  return `${dt.getFullYear()}.${String(dt.getMonth()+1).padStart(2,'0')}.${String(dt.getDate()).padStart(2,'0')}`;
+}
+function gradeLabel(score) {
+  if (score >= 90) return { text: '우수', cls: 'badge-success' };
+  if (score >= 70) return { text: '보통', cls: 'badge-info' };
+  if (score >= 50) return { text: '노력', cls: 'badge-warning' };
+  return { text: '미흡', cls: 'badge-danger' };
+}
+function scoreBarClass(score) {
+  if (score >= 70) return 'high';
+  if (score >= 50) return 'mid';
+  return 'low';
+}
+
+/* ══════════════════════════════════════
+   STUDENTS — CRUD
+   ══════════════════════════════════════ */
+function openStudentModal(id) {
+  const modal = document.getElementById('studentModal');
+  if (id) {
+    const s = getStudents().find(x => x.id === id);
+    if (!s) return;
+    document.getElementById('studentModalTitle').textContent = '학생 정보 수정';
+    document.getElementById('editStudentId').value = id;
+    document.getElementById('sName').value = s.name;
+    document.getElementById('sGrade').value = s.grade;
+    document.getElementById('sSchool').value = s.school;
+  } else {
+    document.getElementById('studentModalTitle').textContent = '학생 등록';
+    document.getElementById('editStudentId').value = '';
+    document.getElementById('sName').value = '';
+    document.getElementById('sGrade').value = '';
+    document.getElementById('sSchool').value = '';
+  }
+  modal.classList.add('active');
+  document.getElementById('sName').focus();
+}
+function closeStudentModal() { document.getElementById('studentModal').classList.remove('active'); }
+
+function saveStudent() {
+  const name = document.getElementById('sName').value.trim();
+  const grade = document.getElementById('sGrade').value;
+  const school = document.getElementById('sSchool').value.trim();
+  if (!name || !grade || !school) { toast('모든 항목을 입력해주세요', 'error'); return; }
+
+  const students = getStudents();
+  const editId = document.getElementById('editStudentId').value;
+
+  if (editId) {
+    const idx = students.findIndex(s => s.id === editId);
+    if (idx !== -1) { students[idx] = { ...students[idx], name, grade, school }; }
+    toast('학생 정보가 수정되었습니다');
+  } else {
+    students.push({ id: genId(), name, grade, school, regDate: today() });
+    toast('학생이 등록되었습니다');
+  }
+  saveStudents(students);
+  closeStudentModal();
+  renderStudents();
+}
+
+function deleteStudent(id) {
+  const s = getStudents().find(x => x.id === id);
+  if (!s) return;
+  showConfirm(`<strong>${s.name}</strong> 학생을 삭제하시겠습니까?<br>관련된 출결 및 성적 데이터도 함께 삭제됩니다.`, () => {
+    saveStudents(getStudents().filter(x => x.id !== id));
+    saveAttendanceData(getAttendance().filter(a => a.studentId !== id));
+    saveTests(getTests().filter(t => t.studentId !== id));
+    toast('학생이 삭제되었습니다');
+    renderStudents();
+  });
+}
+
+function renderStudents() {
+  const students = getStudents();
+  const search = (document.getElementById('studentSearch').value || '').toLowerCase();
+  const gradeF = document.getElementById('gradeFilter').value;
+  let filtered = students.filter(s => {
+    const matchSearch = s.name.toLowerCase().includes(search) || s.school.toLowerCase().includes(search);
+    const matchGrade = !gradeF || s.grade === gradeF;
+    return matchSearch && matchGrade;
+  });
+
+  // stats
+  const gradeGroups = {};
+  students.forEach(s => { gradeGroups[s.grade] = (gradeGroups[s.grade]||0)+1; });
+  document.getElementById('studentStats').innerHTML = `
+    <div class="stat-card"><div class="stat-icon blue">👩‍🎓</div><div><div class="stat-value">${students.length}</div><div class="stat-label">전체 학생 수</div></div></div>
+    <div class="stat-card"><div class="stat-icon green">🏫</div><div><div class="stat-value">${[...new Set(students.map(s=>s.school))].length}</div><div class="stat-label">소속 학교 수</div></div></div>
+    <div class="stat-card"><div class="stat-icon orange">📋</div><div><div class="stat-value">${Object.keys(gradeGroups).length}</div><div class="stat-label">학년 분포</div></div></div>
+  `;
+
+  const tbody = document.getElementById('studentTableBody');
+  const empty = document.getElementById('studentEmpty');
+  if (filtered.length === 0) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  tbody.innerHTML = filtered.map(s => `
+    <tr>
+      <td>
+        <div class="student-cell">
+          <div class="avatar" style="background:${avatarColor(s.name)}">${s.name.charAt(0)}</div>
+          <div>
+            <div class="student-name">${s.name}</div>
+            <div class="student-meta">${s.school}</div>
+          </div>
+        </div>
+      </td>
+      <td><span class="badge badge-info">${s.grade}</span></td>
+      <td>${s.school}</td>
+      <td style="color:var(--text-muted)">${formatDate(s.regDate)}</td>
+      <td style="text-align:center">
+        <button class="btn-icon" title="수정" onclick="openStudentModal('${s.id}')">✏️</button>
+        <button class="btn-icon danger" title="삭제" onclick="deleteStudent('${s.id}')">🗑️</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+/* ══════════════════════════════════════
+   ATTENDANCE
+   ══════════════════════════════════════ */
+function initAttDate() {
+  document.getElementById('attDate').value = today();
+}
+
+function renderAttendance() {
+  const students = getStudents();
+  const date = document.getElementById('attDate').value;
+  const search = (document.getElementById('attSearch').value || '').toLowerCase();
+  const attData = getAttendance();
+
+  let filtered = students.filter(s => s.name.toLowerCase().includes(search));
+
+  // today's stats
+  const todayAtt = attData.filter(a => a.date === date);
+  const pCount = todayAtt.filter(a => a.status === 'present').length;
+  const aCount = todayAtt.filter(a => a.status === 'absent').length;
+  const lCount = todayAtt.filter(a => a.status === 'late').length;
+  document.getElementById('attStats').innerHTML = `
+    <div class="stat-card"><div class="stat-icon blue">👩‍🎓</div><div><div class="stat-value">${students.length}</div><div class="stat-label">전체 학생</div></div></div>
+    <div class="stat-card"><div class="stat-icon green">✅</div><div><div class="stat-value">${pCount}</div><div class="stat-label">출석</div></div></div>
+    <div class="stat-card"><div class="stat-icon red">❌</div><div><div class="stat-value">${aCount}</div><div class="stat-label">결석</div></div></div>
+    <div class="stat-card"><div class="stat-icon orange">⏰</div><div><div class="stat-value">${lCount}</div><div class="stat-label">지각</div></div></div>
+  `;
+
+  const tbody = document.getElementById('attTableBody');
+  const empty = document.getElementById('attEmpty');
+  if (filtered.length === 0) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  tbody.innerHTML = filtered.map(s => {
+    const rec = attData.find(a => a.studentId === s.id && a.date === date);
+    const status = rec ? rec.status : '';
+    const uid = s.id + '_' + date.replace(/-/g,'');
+    return `
+    <tr>
+      <td>
+        <div class="student-cell">
+          <div class="avatar" style="background:${avatarColor(s.name)}">${s.name.charAt(0)}</div>
+          <div><div class="student-name">${s.name}</div><div class="student-meta">${s.school}</div></div>
+        </div>
+      </td>
+      <td><span class="badge badge-info">${s.grade}</span></td>
+      <td style="text-align:center">
+        <div class="att-group">
+          <input class="att-radio" type="radio" name="att_${uid}" id="att_p_${uid}" value="present" data-sid="${s.id}" ${status==='present'?'checked':''}>
+          <label class="att-label lbl-present" for="att_p_${uid}">출석</label>
+          <input class="att-radio" type="radio" name="att_${uid}" id="att_a_${uid}" value="absent" data-sid="${s.id}" ${status==='absent'?'checked':''}>
+          <label class="att-label lbl-absent" for="att_a_${uid}">결석</label>
+          <input class="att-radio" type="radio" name="att_${uid}" id="att_l_${uid}" value="late" data-sid="${s.id}" ${status==='late'?'checked':''}>
+          <label class="att-label lbl-late" for="att_l_${uid}">지각</label>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function saveAttendance() {
+  const date = document.getElementById('attDate').value;
+  if (!date) { toast('날짜를 선택해주세요', 'error'); return; }
+  const students = getStudents();
+  if (students.length === 0) { toast('등록된 학생이 없습니다', 'error'); return; }
+
+  const attData = getAttendance().filter(a => a.date !== date); // remove old for this date
+  let count = 0;
+
+  students.forEach(s => {
+    const uid = s.id + '_' + date.replace(/-/g,'');
+    const checked = document.querySelector(`input[name="att_${uid}"]:checked`);
+    if (checked) {
+      attData.push({ studentId: s.id, date, status: checked.value });
+      count++;
+    }
+  });
+
+  saveAttendanceData(attData);
+  toast(`${formatDate(date)} 출결이 저장되었습니다 (${count}명)`);
+  renderAttendance();
+}
+
+/* 출결 이력 */
+function populateAttHistoryDropdown() {
+  const sel = document.getElementById('attHistoryStudent');
+  const students = getStudents();
+  sel.innerHTML = '<option value="">학생 선택</option>' +
+    students.map(s => `<option value="${s.id}">${s.name} (${s.grade})</option>`).join('');
+  renderAttHistory();
+}
+
+function renderAttHistory() {
+  const sid = document.getElementById('attHistoryStudent').value;
+  const tbody = document.getElementById('attHistoryBody');
+  const empty = document.getElementById('attHistoryEmpty');
+
+  if (!sid) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+
+  const records = getAttendance().filter(a => a.studentId === sid).sort((a,b) => b.date.localeCompare(a.date));
+  if (records.length === 0) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    document.querySelector('#attHistoryEmpty .empty-title').textContent = '출결 기록이 없습니다';
+    return;
+  }
+  empty.style.display = 'none';
+
+  const statusMap = { present: { label: '출석', cls: 'badge-success' }, absent: { label: '결석', cls: 'badge-danger' }, late: { label: '지각', cls: 'badge-warning' } };
+  tbody.innerHTML = records.map(r => {
+    const s = statusMap[r.status] || { label: r.status, cls: '' };
+    return `<tr><td>${formatDate(r.date)}</td><td><span class="badge ${s.cls}">${s.label}</span></td></tr>`;
+  }).join('');
+}
+
+/* ══════════════════════════════════════
+   TESTS — CRUD
+   ══════════════════════════════════════ */
+function populateTestDropdowns() {
+  const students = getStudents();
+  const opts = '<option value="">학생을 선택하세요</option>' + students.map(s => `<option value="${s.id}">${s.name} (${s.grade})</option>`).join('');
+  document.getElementById('tStudent').innerHTML = opts;
+  document.getElementById('testStudentFilter').innerHTML = '<option value="">전체 학생</option>' + students.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+}
+
+function openTestModal(id) {
+  populateTestDropdowns();
+  const modal = document.getElementById('testModal');
+  if (id) {
+    const t = getTests().find(x => x.id === id);
+    if (!t) return;
+    document.getElementById('testModalTitle').textContent = '시험 점수 수정';
+    document.getElementById('editTestId').value = id;
+    document.getElementById('tStudent').value = t.studentId;
+    document.getElementById('tExam').value = t.exam;
+    document.getElementById('tSubject').value = t.subject;
+    document.getElementById('tScore').value = t.score;
+    document.getElementById('tDate').value = t.date || '';
+  } else {
+    document.getElementById('testModalTitle').textContent = '시험 점수 입력';
+    document.getElementById('editTestId').value = '';
+    document.getElementById('tStudent').value = '';
+    document.getElementById('tExam').value = '';
+    document.getElementById('tSubject').value = '';
+    document.getElementById('tScore').value = '';
+    document.getElementById('tDate').value = today();
+  }
+  modal.classList.add('active');
+}
+function closeTestModal() { document.getElementById('testModal').classList.remove('active'); }
+
+function saveTest() {
+  const studentId = document.getElementById('tStudent').value;
+  const exam = document.getElementById('tExam').value.trim();
+  const subject = document.getElementById('tSubject').value;
+  const score = parseInt(document.getElementById('tScore').value);
+  const date = document.getElementById('tDate').value;
+  if (!studentId || !exam || !subject || isNaN(score)) { toast('모든 필수 항목을 입력해주세요', 'error'); return; }
+  if (score < 0 || score > 100) { toast('점수는 0~100 사이로 입력해주세요', 'error'); return; }
+
+  const tests = getTests();
+  const editId = document.getElementById('editTestId').value;
+  if (editId) {
+    const idx = tests.findIndex(t => t.id === editId);
+    if (idx !== -1) tests[idx] = { ...tests[idx], studentId, exam, subject, score, date };
+    toast('시험 결과가 수정되었습니다');
+  } else {
+    tests.push({ id: genId(), studentId, exam, subject, score, date });
+    toast('시험 결과가 등록되었습니다');
+  }
+  saveTests(tests);
+  closeTestModal();
+  renderTests();
+}
+
+function deleteTest(id) {
+  showConfirm('이 시험 결과를 삭제하시겠습니까?', () => {
+    saveTests(getTests().filter(t => t.id !== id));
+    toast('시험 결과가 삭제되었습니다');
+    renderTests();
+  });
+}
+
+function renderTests() {
+  const tests = getTests();
+  const students = getStudents();
+  const search = (document.getElementById('testSearch').value || '').toLowerCase();
+  const filterSid = document.getElementById('testStudentFilter').value;
+
+  let filtered = tests.filter(t => {
+    const s = students.find(x => x.id === t.studentId);
+    const sName = s ? s.name.toLowerCase() : '';
+    const matchSearch = sName.includes(search) || t.exam.toLowerCase().includes(search) || t.subject.toLowerCase().includes(search);
+    const matchStudent = !filterSid || t.studentId === filterSid;
+    return matchSearch && matchStudent;
+  }).sort((a,b) => (b.date||'').localeCompare(a.date||''));
+
+  // stats
+  const allScores = tests.map(t => t.score);
+  const avg = allScores.length ? Math.round(allScores.reduce((a,b)=>a+b,0)/allScores.length) : 0;
+  const high = allScores.length ? Math.max(...allScores) : 0;
+  document.getElementById('testStats').innerHTML = `
+    <div class="stat-card"><div class="stat-icon blue">📝</div><div><div class="stat-value">${tests.length}</div><div class="stat-label">총 시험 건수</div></div></div>
+    <div class="stat-card"><div class="stat-icon green">📈</div><div><div class="stat-value">${avg}점</div><div class="stat-label">전체 평균</div></div></div>
+    <div class="stat-card"><div class="stat-icon orange">🏆</div><div><div class="stat-value">${high}점</div><div class="stat-label">최고 점수</div></div></div>
+  `;
+
+  const tbody = document.getElementById('testTableBody');
+  const empty = document.getElementById('testEmpty');
+  if (filtered.length === 0) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  tbody.innerHTML = filtered.map(t => {
+    const s = students.find(x => x.id === t.studentId);
+    const name = s ? s.name : '(삭제됨)';
+    const school = s ? s.school : '';
+    const grade = s ? s.grade : '-';
+    const g = gradeLabel(t.score);
+    return `
+    <tr>
+      <td>
+        <div class="student-cell">
+          <div class="avatar" style="background:${avatarColor(name)}">${name.charAt(0)}</div>
+          <div><div class="student-name">${name}</div><div class="student-meta">${grade} · ${school}</div></div>
+        </div>
+      </td>
+      <td>${t.exam}</td>
+      <td>${t.subject}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:10px">
+          <strong>${t.score}</strong>
+          <div class="score-bar-wrap"><div class="score-bar ${scoreBarClass(t.score)}" style="width:${t.score}%"></div></div>
+        </div>
+      </td>
+      <td><span class="badge ${g.cls}">${g.text}</span></td>
+      <td style="color:var(--text-muted)">${formatDate(t.date)}</td>
+      <td style="text-align:center">
+        <button class="btn-icon" title="수정" onclick="openTestModal('${t.id}')">✏️</button>
+        <button class="btn-icon danger" title="삭제" onclick="deleteTest('${t.id}')">🗑️</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+/* ══════════════════════════════════════
+   DASHBOARD
+   ══════════════════════════════════════ */
+function renderDashboard() {
+  const students = getStudents();
+  const tests = getTests();
+  const attData = getAttendance();
+  const todayDate = today();
+
+  // overall stats
+  const todayAtt = attData.filter(a => a.date === todayDate);
+  const pres = todayAtt.filter(a => a.status === 'present').length;
+  const avgScore = tests.length ? Math.round(tests.reduce((a,b)=>a+b.score,0)/tests.length) : 0;
+  document.getElementById('dashStats').innerHTML = `
+    <div class="stat-card"><div class="stat-icon blue">👩‍🎓</div><div><div class="stat-value">${students.length}</div><div class="stat-label">전체 학생</div></div></div>
+    <div class="stat-card"><div class="stat-icon green">✅</div><div><div class="stat-value">${pres}/${students.length}</div><div class="stat-label">오늘 출석</div></div></div>
+    <div class="stat-card"><div class="stat-icon orange">📝</div><div><div class="stat-value">${tests.length}</div><div class="stat-label">시험 건수</div></div></div>
+    <div class="stat-card"><div class="stat-icon red">📈</div><div><div class="stat-value">${avgScore}점</div><div class="stat-label">전체 평균</div></div></div>
+  `;
+
+  // grade chart (simple bar chart)
+  const gradeCounts = {};
+  students.forEach(s => { gradeCounts[s.grade] = (gradeCounts[s.grade]||0)+1; });
+  const maxCount = Math.max(...Object.values(gradeCounts), 1);
+  const chartEl = document.getElementById('gradeChart');
+  if (Object.keys(gradeCounts).length === 0) {
+    chartEl.innerHTML = '<div class="empty-state" style="padding:30px"><div class="empty-icon">📊</div><div class="empty-title">학생 데이터 없음</div></div>';
+  } else {
+    const gradeOrder = ['초1','초2','초3','초4','초5','초6','중1','중2','중3','고1','고2','고3'];
+    const sorted = Object.entries(gradeCounts).sort((a,b) => gradeOrder.indexOf(a[0]) - gradeOrder.indexOf(b[0]));
+    chartEl.innerHTML = `<div style="display:flex;align-items:flex-end;gap:12px;height:180px;padding:10px 0">` +
+      sorted.map(([grade, count]) => {
+        const pct = Math.round((count / maxCount) * 100);
+        return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px">
+          <span style="font-size:12px;font-weight:700;color:var(--text-primary)">${count}</span>
+          <div style="width:100%;max-width:48px;height:${pct}%;min-height:8px;background:var(--coral);border-radius:6px 6px 0 0;transition:height 0.4s ease"></div>
+          <span style="font-size:11px;color:var(--text-muted);font-weight:500">${grade}</span>
+        </div>`;
+      }).join('') + `</div>`;
+  }
+
+  // top 5 scores
+  const topTests = [...tests].sort((a,b) => b.score - a.score).slice(0, 5);
+  const topBody = document.getElementById('topScoresBody');
+  const topEmpty = document.getElementById('topScoresEmpty');
+  if (topTests.length === 0) {
+    topBody.innerHTML = '';
+    topEmpty.style.display = 'block';
+  } else {
+    topEmpty.style.display = 'none';
+    topBody.innerHTML = topTests.map((t, i) => {
+      const s = students.find(x => x.id === t.studentId);
+      const name = s ? s.name : '(삭제됨)';
+      const medals = ['🥇','🥈','🥉','4️⃣','5️⃣'];
+      return `<tr>
+        <td><div class="student-cell"><span style="font-size:16px">${medals[i]}</span><span class="student-name">${name}</span></div></td>
+        <td>${t.exam} (${t.subject})</td>
+        <td><strong>${t.score}점</strong></td>
+      </tr>`;
+    }).join('');
+  }
+
+  // today's attendance summary
+  const summaryEl = document.getElementById('todayAttSummary');
+  if (todayAtt.length === 0) {
+    summaryEl.innerHTML = '<div class="empty-state" style="padding:20px"><div class="empty-icon">📅</div><div class="empty-title">오늘 출결 데이터가 없습니다</div><div class="empty-desc">출결 관리 탭에서 오늘의 출결을 체크하세요</div></div>';
+  } else {
+    const abs = todayAtt.filter(a => a.status === 'absent').length;
+    const late = todayAtt.filter(a => a.status === 'late').length;
+    const rate = students.length ? Math.round((pres/students.length)*100) : 0;
+    summaryEl.innerHTML = `
+      <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap">
+        <div style="flex:1;min-width:200px">
+          <div style="font-size:13px;color:var(--text-muted);margin-bottom:8px">출석률</div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="flex:1;height:12px;background:var(--surface);border-radius:6px;overflow:hidden">
+              <div style="width:${rate}%;height:100%;background:${rate>=80?'var(--success)':rate>=50?'var(--warning)':'var(--danger)'};border-radius:6px;transition:width 0.4s ease"></div>
+            </div>
+            <span style="font-size:18px;font-weight:700;color:var(--text-primary)">${rate}%</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:16px">
+          <div style="text-align:center"><div style="font-size:20px;font-weight:700;color:#27AE60">${pres}</div><div style="font-size:11px;color:var(--text-muted)">출석</div></div>
+          <div style="text-align:center"><div style="font-size:20px;font-weight:700;color:var(--danger)">${abs}</div><div style="font-size:11px;color:var(--text-muted)">결석</div></div>
+          <div style="text-align:center"><div style="font-size:20px;font-weight:700;color:var(--warning)">${late}</div><div style="font-size:11px;color:var(--text-muted)">지각</div></div>
+        </div>
+      </div>`;
+  }
+}
+
+/* ══════════════════════════════════════
+   CONFIRM DIALOG
+   ══════════════════════════════════════ */
+let confirmCallback = null;
+function showConfirm(msg, cb) {
+  document.getElementById('confirmText').innerHTML = msg;
+  confirmCallback = cb;
+  document.getElementById('confirmBtn').onclick = () => { if (confirmCallback) confirmCallback(); closeConfirm(); };
+  document.getElementById('confirmModal').classList.add('active');
+}
+function closeConfirm() { document.getElementById('confirmModal').classList.remove('active'); confirmCallback = null; }
+
+/* close modals on overlay click */
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('active'); });
+});
+
+/* ESC key closes modals */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active'));
+  }
+});
+
+/* ══════════════════════════════════════
+   INIT
+   ══════════════════════════════════════ */
+(function init() {
+  // header date
+  const now = new Date();
+  const days = ['일','월','화','수','목','금','토'];
+  document.getElementById('headerDate').textContent =
+    `${now.getFullYear()}년 ${now.getMonth()+1}월 ${now.getDate()}일 (${days[now.getDay()]})`;
+
+  renderStudents();
+})();
+</script>
+</body>
+</html>
